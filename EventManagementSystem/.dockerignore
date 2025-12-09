@@ -1,0 +1,7 @@
+bin/
+obj/
+*.sqlite
+*.db
+.env
+node_modules/
+wwwroot/lib/

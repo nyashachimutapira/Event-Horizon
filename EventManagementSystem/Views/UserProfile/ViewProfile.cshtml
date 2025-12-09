@@ -1,0 +1,289 @@
+@model EventManagementSystem.Models.User
+
+@{
+    ViewData["Title"] = Model.Username + " - Profile";
+    var isOwnProfile = HttpContext.Session.GetInt32("UserId") == Model.Id;
+}
+
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-header card mb-4">
+        <div class="profile-cover bg-gradient" style="height: 200px;">
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            {
+                <img src="@Model.AvatarUrl" alt="@Model.Username" class="profile-avatar" />
+            }
+            else
+            {
+                <div class="profile-avatar bg-secondary text-white">
+                    <i class="fas fa-user fa-3x"></i>
+                </div>
+            }
+        </div>
+
+        <div class="card-body pt-0">
+            <div class="profile-info">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h2>@Model.FirstName @Model.LastName</h2>
+                        <p class="text-muted">@@Model.Username</p>
+                        @if (!string.IsNullOrEmpty(Model.Location))
+                        {
+                            <p class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> @Model.Location
+                            </p>
+                        }
+                    </div>
+                    @if (isOwnProfile)
+                    {
+                        <a href="@Url.Action("Edit")" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </a>
+                    }
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Bio))
+                {
+                    <div class="bio mt-3">
+                        <p>@Model.Bio</p>
+                    </div>
+                }
+
+                <div class="profile-stats mt-4">
+                    <div class="stat">
+                        <h5>@(Model.CreatedEvents?.Count ?? 0)</h5>
+                        <p>Events Created</p>
+                    </div>
+                    <div class="stat">
+                        <h5>@(Model.Rsvps?.Count(r => r.Status == "Attending") ?? 0)</h5>
+                        <p>Events Attending</p>
+                    </div>
+                    <div class="stat">
+                        <h5>@(Model.Feedbacks?.Count ?? 0)</h5>
+                        <p>Reviews Given</p>
+                    </div>
+                    <div class="stat">
+                        <h5>@(Model.Feedbacks?.Count > 0 ? Model.Feedbacks.Average(f => f.Rating).ToString("0.0") : "0")</h5>
+                        <p>Avg Rating</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Events Created -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar-plus"></i> Events Created (@(Model.CreatedEvents?.Count ?? 0))
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CreatedEvents != null && Model.CreatedEvents.Count > 0)
+                    {
+                        <div class="events-list">
+                            @foreach (var evt in Model.CreatedEvents.OrderByDescending(e => e.StartDate).Take(5))
+                            {
+                                <div class="event-item">
+                                    <h6>@evt.Title</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt"></i> @evt.StartDate.ToString("dd MMM yyyy HH:mm")
+                                    </small>
+                                    <p class="mb-0">
+                                        <i class="fas fa-map-marker-alt"></i> @evt.Location
+                                    </p>
+                                    <p class="mb-0">
+                                        <span class="badge badge-primary">@evt.Category</span>
+                                        <span class="badge badge-success">@(evt.Rsvps?.Count ?? 0)/@evt.MaxAttendees</span>
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                        @if (Model.CreatedEvents.Count > 5)
+                        {
+                            <p class="text-muted small">+@(Model.CreatedEvents.Count - 5) more</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No events created yet</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Attending -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Events Attending (@(Model.Rsvps?.Count(r => r.Status == "Attending") ?? 0))
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.Rsvps != null && Model.Rsvps.Any(r => r.Status == "Attending"))
+                    {
+                        <div class="events-list">
+                            @foreach (var rsvp in Model.Rsvps.Where(r => r.Status == "Attending").OrderByDescending(r => r.Event.StartDate).Take(5))
+                            {
+                                <div class="event-item">
+                                    <h6>@rsvp.Event?.Title</h6>
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt"></i> @rsvp.Event?.StartDate.ToString("dd MMM yyyy HH:mm")
+                                    </small>
+                                    <p class="mb-0">
+                                        <i class="fas fa-map-marker-alt"></i> @rsvp.Event?.Location
+                                    </p>
+                                    <p class="mb-0">
+                                        <span class="badge badge-primary">@rsvp.Event?.Category</span>
+                                        @if (rsvp.GuestCount > 0)
+                                        {
+                                            <span class="badge badge-info">+@rsvp.GuestCount guest(s)</span>
+                                        }
+                                    </p>
+                                </div>
+                            }
+                        </div>
+                        @if (Model.Rsvps.Count(r => r.Status == "Attending") > 5)
+                        {
+                            <p class="text-muted small">+@(Model.Rsvps.Count(r => r.Status == "Attending") - 5) more</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Not attending any events yet</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews -->
+    @if (Model.Feedbacks != null && Model.Feedbacks.Count > 0)
+    {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-star"></i> Reviews (@Model.Feedbacks.Count)
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="reviews-list">
+                    @foreach (var feedback in Model.Feedbacks.OrderByDescending(f => f.CreatedAt).Take(5))
+                    {
+                        <div class="review-item">
+                            <div class="d-flex justify-content-between">
+                                <h6>@feedback.Event?.Title</h6>
+                                <div class="rating">
+                                    @for (int i = 0; i < feedback.Rating; i++)
+                                    {
+                                        <i class="fas fa-star text-warning"></i>
+                                    }
+                                    @for (int i = feedback.Rating; i < 5; i++)
+                                    {
+                                        <i class="far fa-star text-warning"></i>
+                                    }
+                                </div>
+                            </div>
+                            <p>@feedback.Comment</p>
+                            <small class="text-muted">@feedback.CreatedAt.ToString("dd MMM yyyy")</small>
+                        </div>
+                    }
+                </div>
+                @if (Model.Feedbacks.Count > 5)
+                {
+                    <p class="text-muted small">+@(Model.Feedbacks.Count - 5) more reviews</p>
+                }
+            </div>
+        </div>
+    }
+
+    @if (isOwnProfile)
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <a href="@Url.Action("Notifications")" class="btn btn-info">
+                    <i class="fas fa-bell"></i> View Notifications
+                </a>
+                <a href="@Url.Action("MyCalendar", "Calendar")" class="btn btn-secondary">
+                    <i class="fas fa-calendar"></i> My Calendar
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .profile-container {
+        padding: 20px;
+    }
+
+    .profile-header {
+        position: relative;
+    }
+
+    .profile-cover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-avatar {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 5px solid white;
+        position: absolute;
+        bottom: -75px;
+        left: 30px;
+        object-fit: cover;
+    }
+
+    .profile-info {
+        margin-left: 180px;
+        padding-top: 20px;
+    }
+
+    .profile-stats {
+        display: flex;
+        gap: 40px;
+    }
+
+    .stat {
+        text-align: center;
+    }
+
+    .stat h5 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #007bff;
+        margin: 0;
+    }
+
+    .stat p {
+        color: #666;
+        margin: 5px 0 0 0;
+    }
+
+    .events-list, .reviews-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .event-item, .review-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 10px;
+    }
+
+    .event-item:last-child, .review-item:last-child {
+        border-bottom: none;
+    }
+
+    .rating {
+        font-size: 1rem;
+        letter-spacing: 2px;
+    }
+</style>

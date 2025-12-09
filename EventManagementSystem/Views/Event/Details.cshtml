@@ -1,0 +1,147 @@
+@model EventManagementSystem.Models.Event
+
+@{
+    ViewData["Title"] = Model.Title;
+    var attendingCount = Model.Rsvps?.Count(r => r.Status == "Attending") ?? 0;
+    var capacityPercent = (attendingCount * 100) / Model.MaxAttendees;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Event Image -->
+        <div class="col-md-6">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded" />
+            }
+            else
+            {
+                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <i class="fas fa-image fa-5x text-muted"></i>
+                </div>
+            }
+        </div>
+
+        <!-- Event Details -->
+        <div class="col-md-6">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <h1>@Model.Title</h1>
+                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">Edit</a>
+            </div>
+
+            <p class="text-muted">
+                <span class="badge badge-primary">@Model.Category</span>
+            </p>
+
+            <div class="event-meta mb-4">
+                <div class="meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <strong>Start Date:</strong> @Model.StartDate.ToString("dddd, MMMM d, yyyy h:mm tt")
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    <strong>End Date:</strong> @Model.EndDate.ToString("dddd, MMMM d, yyyy h:mm tt")
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <strong>Location:</strong> @Model.Location
+                </div>
+                <div class="meta-item">
+                    <i class="fas fa-user-circle"></i>
+                    <strong>Organizer:</strong> @Model.CreatedBy?.Username
+                </div>
+            </div>
+
+            <!-- Capacity Bar -->
+            <div class="capacity-section mb-4">
+                <h5>Attendance</h5>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: @capacityPercent%">
+                        @attendingCount / @Model.MaxAttendees
+                    </div>
+                </div>
+                <small class="text-muted">@attendingCount attending out of @Model.MaxAttendees</small>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mb-4">
+                <a href="@Url.Action("Index")" class="btn btn-secondary">Back to Events</a>
+                <a href="@Url.Action("Delete", new { id = Model.Id })" class="btn btn-danger">Delete Event</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <h3>About This Event</h3>
+            <p>@Model.Description</p>
+        </div>
+    </div>
+
+    <!-- RSVPs -->
+    @if (Model.Rsvps != null && Model.Rsvps.Count > 0)
+    {
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <h3>Attendees (@Model.Rsvps.Count)</h3>
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Guests</th>
+                            <th>RSVP Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rsvp in Model.Rsvps)
+                        {
+                            <tr>
+                                <td>@rsvp.User?.Username</td>
+                                <td>
+                                    @if (rsvp.Status == "Attending")
+                                    {
+                                        <span class="badge badge-success">Attending</span>
+                                    }
+                                    else if (rsvp.Status == "Maybe")
+                                    {
+                                        <span class="badge badge-warning">Maybe</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">Not Attending</span>
+                                    }
+                                </td>
+                                <td>@rsvp.GuestCount</td>
+                                <td>@rsvp.RsvpDate.ToString("M/d/yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <!-- Feedbacks -->
+    @if (Model.Feedbacks != null && Model.Feedbacks.Count > 0)
+    {
+        <div class="row mt-4">
+            <div class="col-md-8">
+                <h3>Feedback (@Model.Feedbacks.Count)</h3>
+                <div class="feedback-list">
+                    @foreach (var feedback in Model.Feedbacks)
+                    {
+                        <div class="card mb-2">
+                            <div class="card-body">
+                                <h6 class="card-title">@feedback.User?.Username</h6>
+                                <p class="card-text">@feedback.Comment</p>
+                                <small class="text-muted">@feedback.CreatedAt.ToString("M/d/yyyy")</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

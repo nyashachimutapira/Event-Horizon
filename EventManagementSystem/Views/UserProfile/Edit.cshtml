@@ -1,0 +1,142 @@
+@model EventManagementSystem.Models.User
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="edit-profile-container">
+    <div class="edit-header mb-4">
+        <h1><i class="fas fa-user-edit"></i> Edit Profile</h1>
+        <p class="text-muted">Update your profile information</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" class="profile-form">
+                        <input type="hidden" asp-for="Id" />
+
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible">
+                            <button type="button" class="btn-close" data-dismiss="alert"></button>
+                            <i class="fas fa-exclamation-circle"></i> Please fix the errors below
+                        </div>
+
+                        <!-- Profile Picture -->
+                        <div class="form-section mb-4">
+                            <h5><i class="fas fa-image"></i> Profile Picture</h5>
+                            <div class="form-group">
+                                <label asp-for="AvatarUrl">Avatar URL</label>
+                                <input asp-for="AvatarUrl" class="form-control" placeholder="https://example.com/avatar.jpg" />
+                                <span asp-validation-for="AvatarUrl" class="text-danger"></span>
+                                <small class="form-text text-muted">Provide a URL to your profile picture</small>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="form-section mb-4">
+                            <h5><i class="fas fa-id-card"></i> Personal Information</h5>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label asp-for="FirstName">First Name</label>
+                                    <input asp-for="FirstName" class="form-control" />
+                                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label asp-for="LastName">Last Name</label>
+                                    <input asp-for="LastName" class="form-control" />
+                                    <span asp-validation-for="LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Location">Location</label>
+                                <input asp-for="Location" class="form-control" placeholder="e.g., Harare, Zimbabwe" />
+                                <span asp-validation-for="Location" class="text-danger"></span>
+                                <small class="form-text text-muted">Your city or region</small>
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="form-section mb-4">
+                            <h5><i class="fas fa-pen"></i> About You</h5>
+                            <div class="form-group">
+                                <label asp-for="Bio">Bio</label>
+                                <textarea asp-for="Bio" class="form-control" rows="4" placeholder="Tell us about yourself and your interests..."></textarea>
+                                <span asp-validation-for="Bio" class="text-danger"></span>
+                                <small class="form-text text-muted">Max 500 characters - Share what interests you!</small>
+                            </div>
+                        </div>
+
+                        <!-- Notification Settings -->
+                        <div class="form-section mb-4">
+                            <h5><i class="fas fa-bell"></i> Notification Settings</h5>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" asp-for="NotificationsEnabled" id="notificationsCheckbox">
+                                <label class="custom-control-label" for="notificationsCheckbox">
+                                    Enable email notifications for RSVPs and event reminders
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                            <a href="@Url.Action("MyProfile")" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="card mt-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Danger Zone</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-danger">Account actions that cannot be undone:</p>
+                    <button type="button" class="btn btn-outline-danger" onclick="alert('Contact admin to delete account')">
+                        <i class="fas fa-trash-alt"></i> Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .edit-profile-container {
+        padding: 20px;
+    }
+
+    .form-section {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        border-left: 4px solid #007bff;
+    }
+
+    .form-section h5 {
+        margin-top: 0;
+        color: #007bff;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+
+    .form-actions .btn {
+        flex: 1;
+    }
+
+    .custom-switch {
+        padding-left: 2.25rem;
+    }
+</style>

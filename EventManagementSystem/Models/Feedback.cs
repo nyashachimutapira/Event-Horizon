@@ -1,0 +1,18 @@
+using System;
+
+namespace EventManagementSystem.Models
+{
+    public class Feedback
+    {
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public int EventId { get; set; }
+        public int Rating { get; set; } // 1-5 stars
+        public string? Comment { get; set; }
+        public bool IsApproved { get; set; } = false;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        
+        public User? User { get; set; }
+        public Event? Event { get; set; }
+    }
+}

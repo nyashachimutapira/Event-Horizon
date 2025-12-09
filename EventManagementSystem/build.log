@@ -1,0 +1,13 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\ViewModels\AdminDashboardViewModel.cs(5,18): error CS0101: The namespace 'EventManagementSystem.ViewModels' already contains a definition for 'AdminDashboardViewModel' [c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\EventManagementSystem.csproj]
+c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\ViewModels\CalendarViewModel.cs(5,18): error CS0101: The namespace 'EventManagementSystem.ViewModels' already contains a definition for 'CalendarViewModel' [c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\EventManagementSystem.csproj]
+
+Build FAILED.
+
+c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\ViewModels\AdminDashboardViewModel.cs(5,18): error CS0101: The namespace 'EventManagementSystem.ViewModels' already contains a definition for 'AdminDashboardViewModel' [c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\EventManagementSystem.csproj]
+c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\ViewModels\CalendarViewModel.cs(5,18): error CS0101: The namespace 'EventManagementSystem.ViewModels' already contains a definition for 'CalendarViewModel' [c:\Users\Bishop Nyasha\Searches\Event-Horizon\EventManagementSystem\EventManagementSystem.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:06.61

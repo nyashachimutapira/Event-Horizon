@@ -1,0 +1,66 @@
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <i class="fas fa-sign-in-alt"></i>
+            <h1>Welcome Back</h1>
+            <p>Sign in to your Event Hub account</p>
+        </div>
+
+        <form asp-action="Login" method="post" class="auth-form">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible">
+                <button type="button" class="btn-close" data-dismiss="alert"></button>
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Email Address
+                </label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required />
+            </div>
+
+            <div class="form-remember">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rememberMe" />
+                    Remember me
+                </label>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-arrow-right"></i> Sign In
+            </button>
+        </form>
+
+        <div class="auth-divider">
+            <span>Don't have an account?</span>
+        </div>
+
+        <a href="@Url.Action("Register")" class="btn btn-outline btn-block btn-lg">
+            <i class="fas fa-user-plus"></i> Create New Account
+        </a>
+    </div>
+
+    <div class="auth-sidebar">
+        <div class="auth-benefits">
+            <h3>Why join Event Hub?</h3>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Discover amazing events</li>
+                <li><i class="fas fa-check-circle"></i> RSVP instantly</li>
+                <li><i class="fas fa-check-circle"></i> Create your own events</li>
+                <li><i class="fas fa-check-circle"></i> Connect with your community</li>
+            </ul>
+        </div>
+    </div>
+</div>

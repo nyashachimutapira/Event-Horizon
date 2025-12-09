@@ -1,0 +1,204 @@
+@using EventManagementSystem.ViewModels
+@model List<EventAnalyticsViewModel>
+
+@{
+    ViewData["Title"] = "Event Analytics - Admin";
+}
+
+<div class="analytics-container">
+    <div class="analytics-header mb-4">
+        <h1><i class="fas fa-chart-bar"></i> Event Analytics</h1>
+        <p class="text-muted">Detailed performance metrics for all events in Event Horizon Zimbabwe</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Event Performance Metrics</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Event Title</th>
+                            <th>Organizer</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Attendance</th>
+                            <th>Attendance Rate</th>
+                            <th>Engagement Score</th>
+                            <th>Avg Rating</th>
+                            <th>Feedback</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Count > 0)
+                        {
+                            @foreach (var analytics in Model.OrderByDescending(a => a.StartDate))
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@analytics.Title</strong>
+                                    </td>
+                                    <td>@analytics.Organizer</td>
+                                    <td>
+                                        <span class="badge badge-primary">@analytics.Category</span>
+                                    </td>
+                                    <td>@analytics.StartDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="badge badge-success">@analytics.TotalAttendees</span> / @analytics.MaxAttendees
+                                    </td>
+                                    <td>
+                                        <div class="progress" style="width: 100px; height: 20px;">
+                                            @{
+                                                var barColor = analytics.AttendanceRate >= 80 ? "bg-success" : analytics.AttendanceRate >= 50 ? "bg-warning" : "bg-danger";
+                                            }
+                                            <div class="progress-bar @barColor" role="progressbar" style="width: @analytics.AttendanceRate%">
+                                                @analytics.AttendanceRate%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge @(analytics.EngagementScore >= 70 ? "badge-success" : analytics.EngagementScore >= 40 ? "badge-warning" : "badge-danger")">
+                                            @analytics.EngagementScore/100
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (analytics.AverageRating > 0)
+                                        {
+                                            <span class="badge badge-info">
+                                                @analytics.AverageRating.ToString("0.0") <i class="fas fa-star"></i>
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>@analytics.FeedbackCount</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">No events found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5>Average Attendance Rate</h5>
+                    <h3 class="text-success">
+                        @(Model != null && Model.Count > 0 ? Model.Average(a => a.AttendanceRate).ToString("0") + "%" : "N/A")
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5>Average Engagement</h5>
+                    <h3 class="text-info">
+                        @(Model != null && Model.Count > 0 ? Model.Average(a => a.EngagementScore).ToString("0") + "/100" : "N/A")
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5>Average Rating</h5>
+                    <h3 class="text-warning">
+                        @(Model != null && Model.Count > 0 ? Model.Where(a => a.AverageRating > 0).Average(a => a.AverageRating).ToString("0.0") : "N/A")
+                        <i class="fas fa-star"></i>
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Insights -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Key Insights</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="insights-list">
+                        @if (Model != null && Model.Count > 0)
+                        {
+                            var bestEvent = Model.OrderByDescending(a => a.AttendanceRate).First();
+                            var mostEngaging = Model.OrderByDescending(a => a.EngagementScore).First();
+                            var highestRated = Model.Where(a => a.AverageRating > 0).OrderByDescending(a => a.AverageRating).FirstOrDefault();
+
+                            <li>
+                                <strong>Highest Attendance:</strong>
+                                <em>@bestEvent.Title</em> with @bestEvent.AttendanceRate% attendance rate
+                            </li>
+                            <li>
+                                <strong>Most Engaging Event:</strong>
+                                <em>@mostEngaging.Title</em> with @mostEngaging.EngagementScore engagement score
+                            </li>
+                            @if (highestRated != null)
+                            {
+                                <li>
+                                    <strong>Highest Rated Event:</strong>
+                                    <em>@highestRated.Title</em> with @highestRated.AverageRating.ToString("0.0") stars
+                                </li>
+                            }
+                            <li>
+                                <strong>Total Events Analyzed:</strong> @Model.Count
+                            </li>
+                            <li>
+                                <strong>Total Attendees:</strong> @Model.Sum(a => a.TotalAttendees)
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="text-muted">No events to analyze</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="@Url.Action("Dashboard")" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<style>
+    .analytics-container {
+        padding: 20px;
+    }
+
+    .insights-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .insights-list li {
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .insights-list li:last-child {
+        border-bottom: none;
+    }
+
+    .insights-list em {
+        color: #007bff;
+        font-style: italic;
+    }
+</style>

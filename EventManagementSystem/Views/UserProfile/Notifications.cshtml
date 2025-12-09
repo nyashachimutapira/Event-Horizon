@@ -1,0 +1,153 @@
+@model List<EventManagementSystem.Models.Notification>
+
+@{
+    ViewData["Title"] = "My Notifications";
+}
+
+<div class="notifications-container">
+    <div class="notifications-header mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="fas fa-bell"></i> Notifications</h1>
+                <p class="text-muted">Stay updated with event information</p>
+            </div>
+            @if (Model != null && Model.Count > 0)
+            {
+                <form method="post" action="@Url.Action("ClearAllNotifications")" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-secondary" title="Mark all as read">
+                        <i class="fas fa-check-double"></i> Mark All as Read
+                    </button>
+                </form>
+            }
+        </div>
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="notifications-list">
+            @foreach (var notification in Model.OrderByDescending(n => n.CreatedAt))
+            {
+                <div class="notification-item card mb-3 @(!notification.IsRead ? "unread" : "")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                        <div class="notification-content flex-grow-1">
+                            <h5 class="card-title">
+                                @{
+                                    var iconHtml = notification.Type switch
+                                    {
+                                        "RSVP_CONFIRMATION" => "<i class=\"fas fa-check-circle text-success\"></i>",
+                                        "EVENT_REMINDER" => "<i class=\"fas fa-calendar-check text-info\"></i>",
+                                        "EVENT_CANCELLED" => "<i class=\"fas fa-times-circle text-danger\"></i>",
+                                        "SPOT_AVAILABLE" => "<i class=\"fas fa-check-double text-warning\"></i>",
+                                        _ => "<i class=\"fas fa-bell\"></i>"
+                                    };
+                                }
+                                @Html.Raw(iconHtml)
+                                @notification.Title
+                            </h5>
+                                <p class="card-text">@notification.Message</p>
+                                <small class="text-muted">
+                                    @notification.CreatedAt.ToString("dd MMMM yyyy HH:mm")
+                                </small>
+                            </div>
+                            <div class="notification-actions">
+                                @{
+                                    var badgeClass = notification.Type switch
+                                    {
+                                        "RSVP_CONFIRMATION" => "badge-success",
+                                        "EVENT_REMINDER" => "badge-info",
+                                        "EVENT_CANCELLED" => "badge-danger",
+                                        "SPOT_AVAILABLE" => "badge-warning",
+                                        _ => "badge-secondary"
+                                    };
+                                    var typeLabel = notification.Type switch
+                                    {
+                                        "RSVP_CONFIRMATION" => "RSVP Confirmed",
+                                        "EVENT_REMINDER" => "Event Reminder",
+                                        "EVENT_CANCELLED" => "Event Cancelled",
+                                        "SPOT_AVAILABLE" => "Spot Available",
+                                        _ => "Notification"
+                                    };
+                                }
+                                <span class="badge @badgeClass">
+                                    @typeLabel
+                                </span>
+                                @if (!notification.IsRead)
+                                {
+                                    <form method="post" action="@Url.Action("MarkNotificationAsRead", new { id = notification.Id })" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-primary ml-2" title="Mark as read">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+
+                        @if (notification.Event != null)
+                        {
+                            <div class="notification-event mt-3 p-3 bg-light rounded">
+                                <h6>@notification.Event.Title</h6>
+                                <small>
+                                    <i class="fas fa-calendar-alt"></i> @notification.Event.StartDate.ToString("dd MMM yyyy HH:mm")
+                                    <br />
+                                    <i class="fas fa-map-marker-alt"></i> @notification.Event.Location
+                                </small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            <i class="fas fa-inbox" style="font-size: 2rem;"></i>
+            <h5 class="mt-3">No Notifications</h5>
+            <p class="text-muted">You're all caught up! Check back later for updates.</p>
+        </div>
+    }
+
+    <a href="@Url.Action("MyProfile")" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to Profile
+    </a>
+</div>
+
+
+
+<style>
+    .notifications-container {
+        padding: 20px;
+    }
+
+    .notification-item {
+        border-left: 4px solid #007bff;
+        transition: all 0.3s;
+    }
+
+    .notification-item.unread {
+        background-color: #f0f7ff;
+        border-left-color: #0056b3;
+    }
+
+    .notification-item:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .notification-content h5 {
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .notification-event {
+        border-left: 3px solid #ffc107;
+    }
+
+    .notification-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+</style>

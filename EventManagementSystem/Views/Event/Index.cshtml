@@ -1,0 +1,52 @@
+@model IEnumerable<EventManagementSystem.Models.Event>
+
+@{
+    ViewData["Title"] = "Events";
+}
+
+<div class="container mt-4">
+    <h1>@ViewData["Title"]</h1>
+    
+    <div class="mb-3">
+        <a href="@Url.Action("Create")" class="btn btn-primary">Create New Event</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Start Date</th>
+                <th>Location</th>
+                <th>Attendees</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Count() > 0)
+            {
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Title</td>
+                        <td>@item.Category</td>
+                        <td>@item.StartDate.ToString("g")</td>
+                        <td>@item.Location</td>
+                        <td>@(item.Rsvps?.Count(r => r.Status == "Attending") ?? 0)/@item.MaxAttendees</td>
+                        <td>
+                            <a href="@Url.Action("Details", new { id = item.Id })" class="btn btn-sm btn-info">Details</a>
+                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="@Url.Action("Delete", new { id = item.Id })" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="text-center">No events found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,89 @@
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <i class="fas fa-user-plus"></i>
+            <h1>Join Event Hub</h1>
+            <p>Create your account and start discovering events</p>
+        </div>
+
+        <form asp-action="Register" method="post" class="auth-form">
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible">
+                <button type="button" class="btn-close" data-dismiss="alert"></button>
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="firstName">
+                        <i class="fas fa-user"></i> First Name
+                    </label>
+                    <input type="text" id="firstName" name="firstName" class="form-control" placeholder="John" required />
+                </div>
+
+                <div class="form-group col-md-6">
+                    <label for="lastName">
+                        <i class="fas fa-user"></i> Last Name
+                    </label>
+                    <input type="text" id="lastName" name="lastName" class="form-control" placeholder="Doe" required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-at"></i> Username
+                </label>
+                <input type="text" id="username" name="username" class="form-control" placeholder="johndoe" required />
+            </div>
+
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Email Address
+                </label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="you@example.com" required />
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Create a strong password" required />
+                <small class="form-text">Must be at least 8 characters</small>
+            </div>
+
+            <div class="form-agreement">
+                <label class="checkbox-label">
+                    <input type="checkbox" required />
+                    I agree to the Terms of Service and Privacy Policy
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+        </form>
+
+        <div class="auth-divider">
+            <span>Already have an account?</span>
+        </div>
+
+        <a href="@Url.Action("Login")" class="btn btn-outline btn-block btn-lg">
+            <i class="fas fa-sign-in-alt"></i> Sign In
+        </a>
+    </div>
+
+    <div class="auth-sidebar">
+        <div class="auth-benefits">
+            <h3>Get started today</h3>
+            <ul>
+                <li><i class="fas fa-check-circle"></i> Browse thousands of events</li>
+                <li><i class="fas fa-check-circle"></i> Create and manage events</li>
+                <li><i class="fas fa-check-circle"></i> Connect with event organizers</li>
+                <li><i class="fas fa-check-circle"></i> Track your RSVPs</li>
+            </ul>
+        </div>
+    </div>
+</div>

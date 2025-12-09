@@ -1,0 +1,102 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Discover Amazing Events</h1>
+        <p class="hero-subtitle">Find and manage events in your community</p>
+        <div class="hero-buttons">
+            <a href="@Url.Action("Index", "Event")" class="btn btn-primary btn-lg">
+                <i class="fas fa-search"></i> Browse Events
+            </a>
+            @if (Context.Session.GetInt32("UserId") == null)
+            {
+                <a href="@Url.Action("Register", "Account")" class="btn btn-outline btn-lg">
+                    <i class="fas fa-user-plus"></i> Get Started
+                </a>
+            }
+        </div>
+    </div>
+    <div class="hero-image">
+        <img src="~/images/event-placeholder.jpg" alt="Events" />
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <h2 class="section-title">Why Choose Event Hub?</h2>
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-search-location"></i>
+            </div>
+            <h3>Easy Discovery</h3>
+            <p>Find events that match your interests with our powerful search and filter options.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <h3>Quick RSVP</h3>
+            <p>Instantly register for events and manage your attendance with ease.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <h3>Event Reviews</h3>
+            <p>Read reviews and ratings from attendees to make informed decisions.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-bar"></i>
+            </div>
+            <h3>Event Analytics</h3>
+            <p>Track attendance and engagement for your events in real-time.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h3>Smart Notifications</h3>
+            <p>Get updates about events you're interested in and reminders for events you're attending.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Safe & Secure</h3>
+            <p>Your data is protected with industry-standard security measures.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <h2>Ready to Find Your Next Event?</h2>
+    <p>Join thousands of event enthusiasts today</p>
+    @if (Context.Session.GetInt32("UserId") == null)
+    {
+        <div class="cta-buttons">
+            <a href="@Url.Action("Register", "Account")" class="btn btn-primary btn-lg">
+                Create Account
+            </a>
+            <a href="@Url.Action("Login", "Account")" class="btn btn-outline btn-lg">
+                Sign In
+            </a>
+        </div>
+    }
+    else
+    {
+        <a href="@Url.Action("Create", "Event")" class="btn btn-primary btn-lg">
+            Create Your First Event
+        </a>
+    }
+</section>

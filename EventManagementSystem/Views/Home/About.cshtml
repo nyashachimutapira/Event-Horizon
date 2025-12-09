@@ -1,0 +1,264 @@
+@{
+    ViewData["Title"] = "About Us";
+}
+
+<!-- About Hero Section -->
+<section class="about-hero">
+    <div class="container">
+        <h1 class="section-title">About Event Hub</h1>
+        <p class="subtitle">Connecting people through shared experiences</p>
+    </div>
+</section>
+
+<!-- Mission Section -->
+<section class="about-section">
+    <div class="container">
+        <div class="about-content">
+            <h2>Our Mission</h2>
+            <p>Event Hub is dedicated to making event discovery and management seamless and accessible to everyone. We believe that events bring communities together, create lasting memories, and foster meaningful connections. Our platform empowers event organizers to reach their audiences and helps attendees find experiences that matter to them.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Vision Section -->
+<section class="about-section bg-light">
+    <div class="container">
+        <div class="about-content">
+            <h2>Our Vision</h2>
+            <p>We envision a world where anyone can easily discover, organize, and participate in events that match their interests and schedules. By leveraging technology, we're breaking down barriers between organizers and attendees, making event planning effortless and event discovery intuitive.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Values Section -->
+<section class="about-section">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Our Core Values</h2>
+        <div class="values-grid">
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>Community</h3>
+                <p>Building spaces where people connect and build relationships through shared interests and experiences.</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3>Innovation</h3>
+                <p>Continuously improving our platform to make event management and discovery more intuitive and efficient.</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Trust</h3>
+                <p>Protecting user data and ensuring a safe, secure environment for all participants and organizers.</p>
+            </div>
+
+            <div class="value-card">
+                <div class="value-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>Excellence</h3>
+                <p>Delivering high-quality experiences through attention to detail and commitment to user satisfaction.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<section class="about-section bg-light">
+    <div class="container">
+        <h2 class="section-title text-center mb-5">Why Choose Event Hub?</h2>
+        <div class="features-list">
+            <div class="feature-item">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <h4>Easy Event Discovery</h4>
+                    <p>Advanced search and filtering tools help users find events tailored to their interests.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <h4>Seamless RSVP Management</h4>
+                    <p>Attendees can easily register for events and organizers can track attendance in real-time.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <h4>Community Feedback</h4>
+                    <p>Reviews and ratings help build trust and improve event quality over time.</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                    <h4>Security & Privacy</h4>
+                    <p>Industry-standard security measures protect user data and ensure safe transactions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact CTA -->
+<section class="cta-section">
+    <div class="container">
+        <h2>Get in Touch</h2>
+        <p>Have questions or feedback? We'd love to hear from you!</p>
+        <a href="mailto:info@eventhub.com" class="btn btn-primary btn-lg">Contact Us</a>
+    </div>
+</section>
+
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 100px 20px;
+        text-align: center;
+    }
+
+    .about-hero .section-title {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: white;
+    }
+
+    .about-hero .subtitle {
+        font-size: 1.3rem;
+        opacity: 0.9;
+    }
+
+    .about-section {
+        padding: 60px 20px;
+    }
+
+    .about-section.bg-light {
+        background-color: #f8f9fa;
+    }
+
+    .about-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .about-content h2 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .about-content p {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: #666;
+    }
+
+    .values-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+
+    .value-card {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .value-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .value-icon {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 15px;
+    }
+
+    .value-card h3 {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .value-card p {
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .features-list {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .feature-item {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+        align-items: flex-start;
+    }
+
+    .feature-item i {
+        color: #667eea;
+        font-size: 1.5rem;
+        margin-top: 5px;
+        flex-shrink: 0;
+    }
+
+    .feature-item h4 {
+        font-size: 1.2rem;
+        margin-bottom: 8px;
+        color: #333;
+    }
+
+    .feature-item p {
+        color: #666;
+        margin: 0;
+    }
+
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        color: #333;
+    }
+
+    .section-title.text-center {
+        text-align: center;
+    }
+
+    .cta-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 80px 20px;
+        text-align: center;
+    }
+
+    .cta-section h2 {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+
+    .cta-section p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+</style>

@@ -1,22 +1,20 @@
-# Build stage
+# Use the official .NET SDK to build
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY ["EventManagementSystem.csproj", "."]
-RUN dotnet restore "EventManagementSystem.csproj"
+
+# Copy everything and restore
 COPY . .
-RUN dotnet build "EventManagementSystem.csproj" -c Release -o /app/build
+RUN dotnet restore
 
-# Publish stage
-FROM build AS publish
-RUN dotnet publish "EventManagementSystem.csproj" -c Release -o /app/publish
+# Build and publish
+RUN dotnet publish -c Release -o /app/publish
 
-# Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+# Use ASP.NET Runtime image for final container
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+COPY --from=build /app/publish .
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
+# Expose port (Render expects 10000+ but app uses 8080 or similar)
+EXPOSE 8080
+
 ENTRYPOINT ["dotnet", "EventManagementSystem.dll"]

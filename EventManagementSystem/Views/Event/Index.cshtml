@@ -1,52 +1,196 @@
-@model IEnumerable<EventManagementSystem.Models.Event>
+@model EventManagementSystem.ViewModels.EventSearchViewModel
+@using EventManagementSystem.ViewModels
 
 @{
     ViewData["Title"] = "Events";
+    var conferenceSelected = Model.Category == "Conference" ? "selected" : "";
+    var workshopSelected = Model.Category == "Workshop" ? "selected" : "";
+    var meetupSelected = Model.Category == "Meetup" ? "selected" : "";
+    var partySelected = Model.Category == "Party" ? "selected" : "";
+    var otherSelected = Model.Category == "Other" ? "selected" : "";
 }
 
 <div class="container mt-4">
-    <h1>@ViewData["Title"]</h1>
-    
-    <div class="mb-3">
-        <a href="@Url.Action("Create")" class="btn btn-primary">Create New Event</a>
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Events</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            @if (ViewBag.IsLoggedIn == true)
+            {
+                <a href="@Url.Action("Create")" class="btn btn-primary">Create Event</a>
+            }
+        </div>
     </div>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Start Date</th>
-                <th>Location</th>
-                <th>Attendees</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Count() > 0)
-            {
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@item.Title</td>
-                        <td>@item.Category</td>
-                        <td>@item.StartDate.ToString("g")</td>
-                        <td>@item.Location</td>
-                        <td>@(item.Rsvps?.Count(r => r.Status == "Attending") ?? 0)/@item.MaxAttendees</td>
-                        <td>
-                            <a href="@Url.Action("Details", new { id = item.Id })" class="btn btn-sm btn-info">Details</a>
-                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-sm btn-warning">Edit</a>
-                            <a href="@Url.Action("Delete", new { id = item.Id })" class="btn btn-sm btn-danger">Delete</a>
-                        </td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="6" class="text-center">No events found.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <!-- Search and Filter Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Search & Filter</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" action="@Url.Action("Index")">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="searchTerm">Search:</label>
+                        <input type="text" name="searchTerm" id="searchTerm" class="form-control" 
+                               placeholder="Title or description..." value="@Model.SearchTerm">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="category">Category:</label>
+                        <select name="category" id="category" class="form-control">
+                            <option value="">All Categories</option>
+                            @if (Model.Category == "Conference") { <option value="Conference" selected>Conference</option> } else { <option value="Conference">Conference</option> }
+                            @if (Model.Category == "Workshop") { <option value="Workshop" selected>Workshop</option> } else { <option value="Workshop">Workshop</option> }
+                            @if (Model.Category == "Meetup") { <option value="Meetup" selected>Meetup</option> } else { <option value="Meetup">Meetup</option> }
+                            @if (Model.Category == "Party") { <option value="Party" selected>Party</option> } else { <option value="Party">Party</option> }
+                            @if (Model.Category == "Other") { <option value="Other" selected>Other</option> } else { <option value="Other">Other</option> }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="location">Location:</label>
+                        <input type="text" name="location" id="location" class="form-control" 
+                               placeholder="City, venue..." value="@Model.Location">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="startDate">From:</label>
+                        <input type="date" name="startDate" id="startDate" class="form-control" 
+                               value="@Model.StartDate?.ToString("yyyy-MM-dd")">
+                    </div>
+                    <div class="col-md-2">
+                        <label for="endDate">To:</label>
+                        <input type="date" name="endDate" id="endDate" class="form-control" 
+                               value="@Model.EndDate?.ToString("yyyy-MM-dd")">
+                    </div>
+                    <div class="col-md-1">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Results Info -->
+    <div class="alert alert-info">
+        Found <strong>@Model.TotalCount</strong> event(s). 
+        Showing page <strong>@Model.PageNumber</strong> of <strong>@Model.TotalPages</strong>
+    </div>
+
+    <!-- Events List -->
+    @if (Model.Events.Any())
+    {
+       <div class="row">
+           @foreach (var evt in Model.Events)
+           {
+               <div class="col-md-6 mb-3">
+                   <div class="card h-100">
+                       @if (!string.IsNullOrEmpty(evt.ImageUrl))
+                       {
+                           <img src="@evt.ImageUrl" class="card-img-top" alt="@evt.Title" style="height: 200px; object-fit: cover;">
+                       }
+                       <div class="card-body">
+                           <h5 class="card-title">@evt.Title</h5>
+                           <p class="card-text text-truncate">@evt.Description</p>
+                           
+                           <div class="mb-2">
+                               <small class="badge bg-info">@evt.Category</small>
+                               <small class="badge bg-secondary">@evt.Location</small>
+                           </div>
+
+                           <p class="card-text">
+                               <strong>Start:</strong> @evt.StartDate.ToString("g")<br>
+                               <strong>End:</strong> @evt.EndDate.ToString("g")<br>
+                               <strong>Attendees:</strong> @evt.Rsvps!.Count / @evt.MaxAttendees<br>
+                               <strong>Organizer:</strong> @evt.CreatedBy?.FirstName @evt.CreatedBy?.LastName
+                           </p>
+
+                           <div class="btn-group" role="group">
+                               <a href="@Url.Action("Details", new { id = evt.Id })" class="btn btn-sm btn-info">View</a>
+                               @if (ViewBag.UserId == evt.CreatedById || ViewBag.IsAdmin == true)
+                               {
+                                   <a href="@Url.Action("Edit", new { id = evt.Id })" class="btn btn-sm btn-warning">Edit</a>
+                                   <a href="@Url.Action("Delete", new { id = evt.Id })" class="btn btn-sm btn-danger">Delete</a>
+                               }
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @{
+                        var prevDisabled = Model.PageNumber == 1 ? "disabled" : "";
+                        <li class="page-item @prevDisabled">
+                            <a class="page-link" href="@Url.Action("Index", new { 
+                                searchTerm = Model.SearchTerm, 
+                                category = Model.Category, 
+                                location = Model.Location,
+                                startDate = Model.StartDate?.ToString("yyyy-MM-dd"),
+                                endDate = Model.EndDate?.ToString("yyyy-MM-dd"),
+                                page = Model.PageNumber - 1 
+                            })">Previous</a>
+                        </li>
+
+                        var pageNumbers = PaginationHelper.GetPageNumbers(Model.PageNumber, Model.TotalPages);
+                        foreach (var pageNum in pageNumbers)
+                        {
+                            if (pageNum == -1)
+                            {
+                                <li class="page-item disabled"><span class="page-link">...</span></li>
+                            }
+                            else
+                            {
+                                var isActive = pageNum == Model.PageNumber ? "active" : "";
+                                <li class="page-item @isActive">
+                                    <a class="page-link" href="@Url.Action("Index", new { 
+                                        searchTerm = Model.SearchTerm, 
+                                        category = Model.Category, 
+                                        location = Model.Location,
+                                        startDate = Model.StartDate?.ToString("yyyy-MM-dd"),
+                                        endDate = Model.EndDate?.ToString("yyyy-MM-dd"),
+                                        page = pageNum 
+                                    })">@pageNum</a>
+                                </li>
+                            }
+                        }
+
+                        var nextDisabled = Model.PageNumber == Model.TotalPages ? "disabled" : "";
+                        <li class="page-item @nextDisabled">
+                            <a class="page-link" href="@Url.Action("Index", new { 
+                                searchTerm = Model.SearchTerm, 
+                                category = Model.Category, 
+                                location = Model.Location,
+                                startDate = Model.StartDate?.ToString("yyyy-MM-dd"),
+                                endDate = Model.EndDate?.ToString("yyyy-MM-dd"),
+                                page = Model.PageNumber + 1 
+                            })">Next</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="alert alert-warning">
+            <strong>No events found.</strong> Try adjusting your filters or <a href="@Url.Action("Index")">view all events</a>.
+        </div>
+    }
 </div>
+
+<style>
+    .card {
+        transition: transform 0.2s;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+</style>

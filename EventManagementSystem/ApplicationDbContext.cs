@@ -10,11 +10,12 @@ namespace EventManagementSystem
         {
         }
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Event> Events { get; set; }
-        public DbSet<Rsvp> Rsvps { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Event> Events { get; set; }
+        public virtual DbSet<Rsvp> Rsvps { get; set; }
+        public virtual DbSet<Feedback> Feedbacks { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<WaitingList> WaitingLists { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

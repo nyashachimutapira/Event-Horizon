@@ -1,32 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EventManagementSystem.Models;
-using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
-
-namespace EventManagementSystem.ViewModels
-{
-    public class EventAnalyticsViewModel
-    {
-        public int EventId { get; set; }
-        public string Title { get; set; }
-        public string Category { get; set; }
-        public DateTime StartDate { get; set; }
-        public string Organizer { get; set; }
-        public int TotalAttendees { get; set; }
-        public int MaxAttendees { get; set; }
-        public int TotalRsvps { get; set; }
-        public int AttendanceRate { get; set; }
-        public int EngagementScore { get; set; }
-        public double AverageRating { get; set; }
-        public int FeedbackCount { get; set; }
-    }
-}
+using EventManagementSystem.ViewModels;
 
 namespace EventManagementSystem.Controllers
 {
-    using EventManagementSystem.ViewModels;
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -39,202 +17,262 @@ namespace EventManagementSystem.Controllers
         // Check if user is admin
         private bool IsAdmin()
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
+            int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null) return false;
-            
-            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-            return user != null && user.IsAdmin;
-        }
 
-        private IActionResult AdminOnly()
-        {
-            if (!IsAdmin())
-                return Unauthorized();
-            return null;
+            var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+            return user?.IsAdmin == true;
         }
 
         // GET: Admin/Dashboard
         public async Task<IActionResult> Dashboard()
         {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
+            if (!IsAdmin())
+                return Forbid();
 
-            var stats = new AdminDashboardViewModel
-            {
-                TotalUsers = await _context.Users.CountAsync(),
-                TotalEvents = await _context.Events.CountAsync(),
-                TotalAttendances = await _context.Rsvps.CountAsync(),
-                TotalFeedback = await _context.Feedbacks.CountAsync(),
-                EventsThisMonth = await _context.Events
-                    .Where(e => e.CreatedAt.Month == DateTime.Now.Month && e.CreatedAt.Year == DateTime.Now.Year)
-                    .CountAsync(),
-                PendingModerations = await _context.Feedbacks
-                    .Where(f => !f.IsApproved)
-                    .CountAsync(),
-                RecentEvents = await _context.Events
-                    .Include(e => e.CreatedBy)
-                    .OrderByDescending(e => e.CreatedAt)
-                    .Take(5)
-                    .ToListAsync(),
-                TopEvents = await _context.Events
-                    .Include(e => e.Rsvps)
-                    .OrderByDescending(e => e.Rsvps.Count)
-                    .Take(5)
-                    .ToListAsync()
-            };
+            // Get statistics
+            var totalUsers = await _context.Users.CountAsync();
+            var totalEvents = await _context.Events.CountAsync(e => !e.IsArchived);
+            var totalRsvps = await _context.Rsvps.CountAsync();
+            var totalReviews = await _context.Feedbacks.CountAsync();
 
-            return View(stats);
+            ViewBag.TotalUsers = totalUsers;
+            ViewBag.TotalEvents = totalEvents;
+            ViewBag.TotalRsvps = totalRsvps;
+            ViewBag.TotalReviews = totalReviews;
+
+            // Recent events
+            var recentEvents = await _context.Events
+                .OrderByDescending(e => e.CreatedAt)
+                .Take(5)
+                .Include(e => e.CreatedBy)
+                .ToListAsync();
+
+            // Recent users
+            var recentUsers = await _context.Users
+                .OrderByDescending(u => u.CreatedAt)
+                .Take(5)
+                .ToListAsync();
+
+            ViewBag.RecentEvents = recentEvents;
+            ViewBag.RecentUsers = recentUsers;
+
+            return View();
         }
 
-        // GET: Admin/EventAnalytics
-        public async Task<IActionResult> EventAnalytics()
+        // GET: Admin/Users
+        public async Task<IActionResult> Users(int page = 1)
         {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
+            if (!IsAdmin())
+                return Forbid();
+
+            const int pageSize = 20;
+
+            var users = await _context.Users
+                .OrderByDescending(u => u.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalCount = await _context.Users.CountAsync();
+
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (totalCount + pageSize - 1) / pageSize;
+            ViewBag.TotalCount = totalCount;
+
+            return View(users);
+        }
+
+        // GET: Admin/Events
+        public async Task<IActionResult> Events(int page = 1)
+        {
+            if (!IsAdmin())
+                return Forbid();
+
+            const int pageSize = 20;
 
             var events = await _context.Events
                 .Include(e => e.CreatedBy)
                 .Include(e => e.Rsvps)
-                .Include(e => e.Feedbacks)
                 .OrderByDescending(e => e.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            var analytics = events.Select(e => new EventAnalyticsViewModel
-            {
-                EventId = e.Id,
-                Title = e.Title,
-                Category = e.Category,
-                StartDate = e.StartDate,
-                Organizer = e.CreatedBy?.Username,
-                TotalAttendees = e.Rsvps?.Count(r => r.Status == "Attending") ?? 0,
-                MaxAttendees = e.MaxAttendees,
-                TotalRsvps = e.Rsvps?.Count ?? 0,
-                AttendanceRate = e.MaxAttendees > 0 ? ((e.Rsvps?.Count(r => r.Status == "Attending") ?? 0) * 100) / e.MaxAttendees : 0,
-                EngagementScore = CalculateEngagementScore(e),
-                AverageRating = e.Feedbacks?.Count > 0 ? e.Feedbacks.Average(f => f.Rating) : 0,
-                FeedbackCount = e.Feedbacks?.Count ?? 0
-            }).ToList();
+            var totalCount = await _context.Events.CountAsync();
 
-            return View(analytics);
+            ViewBag.Page = page;
+            ViewBag.TotalPages = (totalCount + pageSize - 1) / pageSize;
+            ViewBag.TotalCount = totalCount;
+
+            return View(events);
         }
 
-        // GET: Admin/Users
-        public async Task<IActionResult> Users(string search = "")
+        // GET: Admin/ArchivedEvents
+        public async Task<IActionResult> ArchivedEvents()
         {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
+            if (!IsAdmin())
+                return Forbid();
 
-            var users = await _context.Users
-                .Include(u => u.CreatedEvents)
-                .Include(u => u.Rsvps)
-                .Include(u => u.Feedbacks)
-                .Where(u => string.IsNullOrEmpty(search) || 
-                    u.Username.Contains(search) || 
-                    u.Email.Contains(search) ||
-                    u.FirstName.Contains(search) ||
-                    u.LastName.Contains(search))
+            var archivedEvents = await _context.Events
+                .Where(e => e.IsArchived)
+                .Include(e => e.CreatedBy)
+                .OrderByDescending(e => e.ArchivedAt)
                 .ToListAsync();
 
-            ViewBag.Search = search;
-            return View(users);
+            return View(archivedEvents);
         }
 
-        // GET: Admin/UserDetails
-        public async Task<IActionResult> UserDetails(int? id)
+        // POST: Admin/RestoreEvent
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestoreEvent(int eventId)
         {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
+            if (!IsAdmin())
+                return Forbid();
 
-            if (id == null)
+            var @event = await _context.Events.FindAsync(eventId);
+            if (@event == null)
                 return NotFound();
 
-            var user = await _context.Users
-                .Include(u => u.CreatedEvents)
-                .Include(u => u.Rsvps).ThenInclude(r => r.Event)
-                .Include(u => u.Feedbacks).ThenInclude(f => f.Event)
-                .FirstOrDefaultAsync(u => u.Id == id);
+            @event.IsArchived = false;
+            @event.ArchivedAt = null;
 
+            _context.Update(@event);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Event restored successfully";
+            return RedirectToAction("ArchivedEvents");
+        }
+
+        // POST: Admin/DeactivateUser
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeactivateUser(int userId)
+        {
+            if (!IsAdmin())
+                return Forbid();
+
+            var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return NotFound();
 
-            return View(user);
+            user.IsActive = false;
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "User deactivated";
+            return RedirectToAction("Users");
         }
 
-        // POST: Admin/ToggleUserStatus
+        // POST: Admin/ActivateUser
         [HttpPost]
-        public async Task<IActionResult> ToggleUserStatus(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ActivateUser(int userId)
         {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
+            if (!IsAdmin())
+                return Forbid();
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.FindAsync(userId);
             if (user == null)
                 return NotFound();
 
-            user.IsActive = !user.IsActive;
-            _context.Users.Update(user);
+            user.IsActive = true;
+            _context.Update(user);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(UserDetails), new { id });
+            TempData["Success"] = "User activated";
+            return RedirectToAction("Users");
         }
 
-        // GET: Admin/Moderation
-        public async Task<IActionResult> Moderation()
+        // POST: Admin/MakeAdmin
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MakeAdmin(int userId)
         {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
+            if (!IsAdmin())
+                return Forbid();
 
-            var pendingFeedback = await _context.Feedbacks
-                .Include(f => f.User)
-                .Include(f => f.Event)
-                .Where(f => !f.IsApproved)
-                .OrderByDescending(f => f.CreatedAt)
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            user.IsAdmin = true;
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "User promoted to admin";
+            return RedirectToAction("Users");
+        }
+
+        // POST: Admin/RemoveAdmin
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveAdmin(int userId)
+        {
+            if (!IsAdmin())
+                return Forbid();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+                return NotFound();
+
+            user.IsAdmin = false;
+            _context.Update(user);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Admin role removed";
+            return RedirectToAction("Users");
+        }
+
+        // GET: Admin/Analytics
+        public async Task<IActionResult> Analytics()
+        {
+            if (!IsAdmin())
+                return Forbid();
+
+            // Event statistics
+            var totalEvents = await _context.Events.CountAsync(e => !e.IsArchived);
+            var activeEvents = await _context.Events.CountAsync(e => e.Status == "Active" && !e.IsArchived);
+            var cancelledEvents = await _context.Events.CountAsync(e => e.Status == "Cancelled");
+            var archivedEvents = await _context.Events.CountAsync(e => e.IsArchived);
+
+            ViewBag.TotalEvents = totalEvents;
+            ViewBag.ActiveEvents = activeEvents;
+            ViewBag.CancelledEvents = cancelledEvents;
+            ViewBag.ArchivedEvents = archivedEvents;
+
+            // User statistics
+            var totalUsers = await _context.Users.CountAsync();
+            var activeUsers = await _context.Users.CountAsync(u => u.IsActive);
+            var adminUsers = await _context.Users.CountAsync(u => u.IsAdmin);
+
+            ViewBag.TotalUsers = totalUsers;
+            ViewBag.ActiveUsers = activeUsers;
+            ViewBag.AdminUsers = adminUsers;
+
+            // Category statistics
+            var eventsByCategory = await _context.Events
+                .Where(e => !e.IsArchived)
+                .GroupBy(e => e.Category)
+                .Select(g => new { Category = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
                 .ToListAsync();
 
-            return View(pendingFeedback);
-        }
+            ViewBag.EventsByCategory = eventsByCategory;
 
-        // POST: Admin/ApproveFeedback
-        [HttpPost]
-        public async Task<IActionResult> ApproveFeedback(int id)
-        {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
+            // Top events by attendance
+            var topEvents = await _context.Events
+                .Include(e => e.Rsvps)
+                .Where(e => !e.IsArchived)
+                .OrderByDescending(e => e.Rsvps!.Count)
+                .Take(10)
+                .Select(e => new { e.Title, Count = e.Rsvps!.Count })
+                .ToListAsync();
 
-            var feedback = await _context.Feedbacks.FindAsync(id);
-            if (feedback == null)
-                return NotFound();
+            ViewBag.TopEvents = topEvents;
 
-            feedback.IsApproved = true;
-            _context.Feedbacks.Update(feedback);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Moderation));
-        }
-
-        // POST: Admin/RejectFeedback
-        [HttpPost]
-        public async Task<IActionResult> RejectFeedback(int id)
-        {
-            var authCheck = AdminOnly();
-            if (authCheck != null) return authCheck;
-
-            var feedback = await _context.Feedbacks.FindAsync(id);
-            if (feedback == null)
-                return NotFound();
-
-            _context.Feedbacks.Remove(feedback);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(Moderation));
-        }
-
-        private int CalculateEngagementScore(Event @event)
-        {
-            // Score based on RSVPs + Feedback
-            var rsvpScore = (@event.Rsvps?.Count ?? 0) * 10;
-            var feedbackScore = (@event.Feedbacks?.Count ?? 0) * 15;
-            return Math.Min(100, rsvpScore + feedbackScore);
+            return View();
         }
     }
 }

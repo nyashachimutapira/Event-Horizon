@@ -1,0 +1,173 @@
+@model EventManagementSystem.ViewModels.EventReviewViewModel
+@using EventManagementSystem.Models
+
+@{
+    ViewData["Title"] = "Reviews - " + Model.Event.Title;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <h1>@Model.Event.Title</h1>
+            <p class="text-muted">Reviews and Ratings</p>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h3>
+                        @{
+                            var avgRating = Model.Event.Feedbacks?.Any() == true ? Model.Event.Feedbacks.Average(f => f.Rating) : 0;
+                        }
+                        <span class="text-warning">★ @avgRating.ToString("F1")</span>
+                    </h3>
+                    <p class="text-muted mb-0">
+                        Based on @(Model.Event.Feedbacks?.Count ?? 0) reviews
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leave a Review -->
+    @if (ViewBag.UserId != null)
+    {
+        var userRsvp = Model.Event.Rsvps?.FirstOrDefault(r => r.UserId == ViewBag.UserId);
+        var userReview = Model.Event.Feedbacks?.FirstOrDefault(f => f.UserId == ViewBag.UserId);
+
+        if (userRsvp?.Status == "Attending")
+        {
+            <div class="card mt-4 mb-4">
+                <div class="card-header">
+                    <h5>Share Your Experience</h5>
+                </div>
+                <div class="card-body">
+                    @if (userReview != null)
+                    {
+                        <p class="alert alert-info">
+                            You have already reviewed this event. <a href="javascript:void(0);" onclick="editReview();">Edit your review</a>
+                        </p>
+                    }
+                    else
+                    {
+                        <form id="reviewForm" method="post" action="@Url.Action("CreateReview", "Event")">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="eventId" value="@Model.Event.Id">
+
+                            <div class="mb-3">
+                                <label for="rating" class="form-label">Rating (1-5 stars):</label>
+                                <div class="rating-input">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <input type="radio" id="rating@i" name="rating" value="@i" required>
+                                        <label for="rating@i" class="star">★</label>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="comment" class="form-label">Your Review:</label>
+                                <textarea id="comment" name="comment" class="form-control" rows="4" 
+                                          placeholder="Share your experience..." minlength="10" maxlength="1000"></textarea>
+                                <small class="text-muted">Optional. 10-1000 characters.</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Reviews List -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Reviews (@(Model.Event.Feedbacks?.Count ?? 0))</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Event.Feedbacks?.Any() == true)
+            {
+                @foreach (var feedback in Model.Event.Feedbacks.OrderByDescending(f => f.CreatedAt))
+                {
+                    <div class="review-item mb-4 pb-4 border-bottom">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    @feedback.User?.FirstName @feedback.User?.LastName
+                                </h6>
+                                <div class="text-warning mb-2">
+                                    @for (int i = 0; i < feedback.Rating; i++)
+                                    {
+                                        <span>★</span>
+                                    }
+                                    @for (int i = feedback.Rating; i < 5; i++)
+                                    {
+                                        <span style="color: #ccc;">★</span>
+                                    }
+                                    <small class="text-muted ms-2">@feedback.Rating/5</small>
+                                </div>
+                            </div>
+                            <small class="text-muted">@feedback.CreatedAt.ToString("MMM dd, yyyy")</small>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(feedback.Comment))
+                        {
+                            <p class="mb-0">@feedback.Comment</p>
+                        }
+
+                        @if (ViewBag.UserId == feedback.UserId || ViewBag.IsAdmin == true)
+                        {
+                            <div class="mt-2">
+                                <a href="#" class="btn btn-sm btn-outline-primary">Edit</a>
+                                <a href="#" class="btn btn-sm btn-outline-danger">Delete</a>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-muted text-center">No reviews yet. Be the first to review this event!</p>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .rating-input {
+        font-size: 2rem;
+        display: flex;
+        gap: 10px;
+    }
+
+    .rating-input input[type="radio"] {
+        display: none;
+    }
+
+    .rating-input label.star {
+        cursor: pointer;
+        color: #ccc;
+        transition: color 0.2s;
+    }
+
+    .rating-input input[type="radio"]:checked ~ .star,
+    .rating-input label.star:hover,
+    .rating-input label.star:hover ~ .star {
+        color: #ffc107;
+    }
+
+    .review-item {
+        padding-bottom: 1rem;
+    }
+
+    .review-item:last-child {
+        border-bottom: none;
+    }
+</style>
+
+<script>
+    function editReview() {
+        // TODO: Implement edit review functionality
+        alert('Edit review feature coming soon!');
+    }
+</script>

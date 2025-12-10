@@ -2,146 +2,252 @@
 
 @{
     ViewData["Title"] = Model.Title;
-    var attendingCount = Model.Rsvps?.Count(r => r.Status == "Attending") ?? 0;
-    var capacityPercent = (attendingCount * 100) / Model.MaxAttendees;
+    var attendeeCount = Model.Rsvps?.Count(r => r.Status == "Attending") ?? 0;
+    var maybeCount = Model.Rsvps?.Count(r => r.Status == "Maybe") ?? 0;
+    var avgRating = Model.Feedbacks?.Any() == true ? Model.Feedbacks.Average(f => f.Rating) : 0;
 }
 
 <div class="container mt-4">
+    <!-- Event Header -->
     <div class="row">
-        <!-- Event Image -->
-        <div class="col-md-6">
+        <div class="col-md-8">
             @if (!string.IsNullOrEmpty(Model.ImageUrl))
             {
-                <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded" />
+                <img src="@Model.ImageUrl" alt="@Model.Title" class="img-fluid rounded mb-4" style="max-height: 400px; object-fit: cover; width: 100%;">
+            }
+
+            <h1>@Model.Title</h1>
+            <div class="mb-3">
+                <span class="badge bg-info">@Model.Category</span>
+                <span class="badge bg-secondary">@Model.Location</span>
+                @if (Model.Status == "Cancelled")
+                {
+                    <span class="badge bg-danger">Cancelled</span>
+                }
+                else if (Model.Status == "Rescheduled")
+                {
+                    <span class="badge bg-warning text-dark">Rescheduled</span>
+                }
+            </div>
+
+            <!-- Event Details -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">START DATE</h6>
+                            <p><i class="far fa-calendar"></i> @Model.StartDate.ToString("dddd, MMMM dd, yyyy")</p>
+                            <p><i class="far fa-clock"></i> @Model.StartDate.ToString("h:mm tt")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">END DATE</h6>
+                            <p><i class="far fa-calendar"></i> @Model.EndDate.ToString("dddd, MMMM dd, yyyy")</p>
+                            <p><i class="far fa-clock"></i> @Model.EndDate.ToString("h:mm tt")</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">LOCATION</h6>
+                            <p><i class="fas fa-map-marker-alt"></i> @Model.Location</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">ORGANIZER</h6>
+                            <p>@Model.CreatedBy?.FirstName @Model.CreatedBy?.LastName</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">About</h5>
+                </div>
+                <div class="card-body">
+                    <p>@Html.Raw(Model.Description)</p>
+                </div>
+            </div>
+
+            <!-- Ratings -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Reviews</h5>
+                    <a href="@Url.Action("Reviews", new { id = Model.Id })" class="btn btn-sm btn-outline-primary">
+                        View All Reviews (@(Model.Feedbacks?.Count ?? 0))
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-center">
+                            <h2 class="text-warning">★ @avgRating.ToString("F1")</h2>
+                            <p class="text-muted">@(Model.Feedbacks?.Count ?? 0) reviews</p>
+                        </div>
+                        <div class="col-md-8">
+                            @{
+                                for (int i = 5; i >= 1; i--)
+                                {
+                                    var count = Model.Feedbacks?.Count(f => f.Rating == i) ?? 0;
+                                    var percentage = Model.Feedbacks?.Any() == true ? (count * 100 / Model.Feedbacks.Count) : 0;
+                                    <div class="mb-2">
+                                        <div class="d-flex justify-content-between mb-1">
+                                            <small>@i ★</small>
+                                            <small>@percentage%</small>
+                                        </div>
+                                        <div class="progress" style="height: 10px;">
+                                            <div class="progress-bar" style="width: @percentage%"></div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <!-- Capacity -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6 class="text-muted">CAPACITY</h6>
+                    <p class="h4">@attendeeCount / @Model.MaxAttendees Attending</p>
+                    @{
+                        var capacityPercent = (attendeeCount * 100 / Model.MaxAttendees);
+                        var progressColor = capacityPercent < 50 ? "success" : capacityPercent < 80 ? "warning" : "danger";
+                    }
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-@progressColor" style="width: @capacityPercent%"></div>
+                    </div>
+                    <small class="text-muted">@maybeCount maybe attending</small>
+                </div>
+            </div>
+
+            <!-- RSVP Actions -->
+            @if (ViewBag.UserId != null)
+            {
+                var userRsvp = Model.Rsvps?.FirstOrDefault(r => r.UserId == ViewBag.UserId);
+                var waitingListPosition = Model.WaitingList?.FirstOrDefault(w => w.UserId == ViewBag.UserId);
+
+                <div class="card mb-3">
+                    <div class="card-body">
+                        @if (userRsvp != null)
+                        {
+                            <p class="mb-2">
+                                <strong>Your Status:</strong>
+                                <span class="badge bg-success">@userRsvp.Status</span>
+                            </p>
+                            <form method="post" action="@Url.Action("Rsvp")" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="eventId" value="@Model.Id">
+                                <input type="hidden" name="status" value="NotAttending">
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Cancel RSVP</button>
+                            </form>
+                        }
+                        else if (waitingListPosition != null)
+                        {
+                            <p class="mb-2">
+                                <strong>Status:</strong>
+                                <span class="badge bg-warning text-dark">Waiting List #@waitingListPosition.Priority</span>
+                            </p>
+                        }
+                        else
+                        {
+                            <form method="post" action="@Url.Action("Rsvp")">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="eventId" value="@Model.Id">
+                                <input type="hidden" name="status" value="Attending">
+                                <button type="submit" class="btn btn-primary w-100 mb-2">RSVP to Event</button>
+                            </form>
+                        }
+                    </div>
+                </div>
             }
             else
             {
-                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 400px;">
-                    <i class="fas fa-image fa-5x text-muted"></i>
-                </div>
-            }
-        </div>
-
-        <!-- Event Details -->
-        <div class="col-md-6">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <h1>@Model.Title</h1>
-                <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">Edit</a>
-            </div>
-
-            <p class="text-muted">
-                <span class="badge badge-primary">@Model.Category</span>
-            </p>
-
-            <div class="event-meta mb-4">
-                <div class="meta-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <strong>Start Date:</strong> @Model.StartDate.ToString("dddd, MMMM d, yyyy h:mm tt")
-                </div>
-                <div class="meta-item">
-                    <i class="fas fa-calendar-alt"></i>
-                    <strong>End Date:</strong> @Model.EndDate.ToString("dddd, MMMM d, yyyy h:mm tt")
-                </div>
-                <div class="meta-item">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <strong>Location:</strong> @Model.Location
-                </div>
-                <div class="meta-item">
-                    <i class="fas fa-user-circle"></i>
-                    <strong>Organizer:</strong> @Model.CreatedBy?.Username
-                </div>
-            </div>
-
-            <!-- Capacity Bar -->
-            <div class="capacity-section mb-4">
-                <h5>Attendance</h5>
-                <div class="progress" style="height: 25px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: @capacityPercent%">
-                        @attendingCount / @Model.MaxAttendees
+                <div class="card mb-3 bg-light">
+                    <div class="card-body">
+                        <p class="text-muted">
+                            <a href="@Url.Action("Login", "Account")">Sign in</a> to RSVP to this event
+                        </p>
                     </div>
                 </div>
-                <small class="text-muted">@attendingCount attending out of @Model.MaxAttendees</small>
-            </div>
+            }
 
-            <!-- Action Buttons -->
-            <div class="mb-4">
-                <a href="@Url.Action("Index")" class="btn btn-secondary">Back to Events</a>
-                <a href="@Url.Action("Delete", new { id = Model.Id })" class="btn btn-danger">Delete Event</a>
-            </div>
-        </div>
-    </div>
+            <!-- Edit/Delete (for owner/admin) -->
+            @if (ViewBag.UserId == Model.CreatedById || ViewBag.IsAdmin == true)
+            {
+                <div class="card mb-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">Organizer Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-sm btn-warning w-100 mb-2">
+                            <i class="fas fa-edit"></i> Edit Event
+                        </a>
+                        <button class="btn btn-sm btn-danger w-100" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="fas fa-trash"></i> Delete Event
+                        </button>
+                    </div>
+                </div>
+            }
 
-    <!-- Description -->
-    <div class="row mt-4">
-        <div class="col-md-8">
-            <h3>About This Event</h3>
-            <p>@Model.Description</p>
-        </div>
-    </div>
-
-    <!-- RSVPs -->
-    @if (Model.Rsvps != null && Model.Rsvps.Count > 0)
-    {
-        <div class="row mt-4">
-            <div class="col-md-8">
-                <h3>Attendees (@Model.Rsvps.Count)</h3>
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Guests</th>
-                            <th>RSVP Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var rsvp in Model.Rsvps)
-                        {
-                            <tr>
-                                <td>@rsvp.User?.Username</td>
-                                <td>
-                                    @if (rsvp.Status == "Attending")
-                                    {
-                                        <span class="badge badge-success">Attending</span>
-                                    }
-                                    else if (rsvp.Status == "Maybe")
-                                    {
-                                        <span class="badge badge-warning">Maybe</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-danger">Not Attending</span>
-                                    }
-                                </td>
-                                <td>@rsvp.GuestCount</td>
-                                <td>@rsvp.RsvpDate.ToString("M/d/yyyy")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    }
-
-    <!-- Feedbacks -->
-    @if (Model.Feedbacks != null && Model.Feedbacks.Count > 0)
-    {
-        <div class="row mt-4">
-            <div class="col-md-8">
-                <h3>Feedback (@Model.Feedbacks.Count)</h3>
-                <div class="feedback-list">
-                    @foreach (var feedback in Model.Feedbacks)
-                    {
-                        <div class="card mb-2">
-                            <div class="card-body">
-                                <h6 class="card-title">@feedback.User?.Username</h6>
-                                <p class="card-text">@feedback.Comment</p>
-                                <small class="text-muted">@feedback.CreatedAt.ToString("M/d/yyyy")</small>
-                            </div>
-                        </div>
-                    }
+            <!-- Share -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Share Event</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=@Request.Scheme://@Request.Host@Url.Action("Details", new { id = Model.Id })" 
+                           class="btn btn-sm btn-outline-primary" target="_blank">
+                            <i class="fab fa-facebook"></i> Facebook
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url=@Request.Scheme://@Request.Host@Url.Action("Details", new { id = Model.Id })" 
+                           class="btn btn-sm btn-outline-info" target="_blank">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="copyToClipboard()">
+                            <i class="fas fa-link"></i> Copy Link
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    }
+    </div>
 </div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Delete Event</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>@Model.Title</strong>?</p>
+                <p class="text-danger">This action cannot be undone. All attendees will be notified.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="@Url.Action("Delete")" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.Id">
+                    <button type="submit" class="btn btn-danger">Delete Event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyToClipboard() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Event link copied to clipboard!');
+            });
+        }
+    </script>
+}

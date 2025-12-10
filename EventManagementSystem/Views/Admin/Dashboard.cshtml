@@ -1,223 +1,136 @@
-@model AdminDashboardViewModel
-
 @{
-    ViewData["Title"] = "Admin Dashboard - Event Horizon Zimbabwe";
-    var currency = "ZWL";
+    ViewData["Title"] = "Admin Dashboard";
 }
 
-<div class="admin-container">
-    <div class="admin-header mb-4">
-        <h1><i class="fas fa-chart-line"></i> Event Horizon Zimbabwe - Admin Dashboard</h1>
-        <p class="text-muted">Harare, Zimbabwe | Last Updated: @DateTime.Now.ToString("dd MMMM yyyy HH:mm")</p>
-    </div>
+<div class="container-fluid mt-4">
+    <h1 class="mb-4">Admin Dashboard</h1>
 
-    <!-- Stats Row -->
+    <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="stat-card card">
+            <div class="card text-white bg-primary">
                 <div class="card-body">
-                    <div class="stat-number">@Model.TotalUsers</div>
-                    <div class="stat-label">
-                        <i class="fas fa-users"></i> Total Users
-                    </div>
+                    <h6 class="card-title">Total Users</h6>
+                    <h2 class="mb-0">@ViewBag.TotalUsers</h2>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Users")" class="text-white text-decoration-none">View All →</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card card">
+            <div class="card text-white bg-success">
                 <div class="card-body">
-                    <div class="stat-number">@Model.TotalEvents</div>
-                    <div class="stat-label">
-                        <i class="fas fa-calendar-alt"></i> Total Events
-                    </div>
+                    <h6 class="card-title">Active Events</h6>
+                    <h2 class="mb-0">@ViewBag.TotalEvents</h2>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Events")" class="text-white text-decoration-none">View All →</a>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card card">
+            <div class="card text-white bg-info">
                 <div class="card-body">
-                    <div class="stat-number">@Model.TotalAttendances</div>
-                    <div class="stat-label">
-                        <i class="fas fa-check-circle"></i> Total Attendances
-                    </div>
+                    <h6 class="card-title">Total RSVPs</h6>
+                    <h2 class="mb-0">@ViewBag.TotalRsvps</h2>
+                </div>
+                <div class="card-footer">
+                    <small>Registrations</small>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stat-card card @(Model.PendingModerations > 0 ? "card-warning" : "")">
+            <div class="card text-white bg-warning">
                 <div class="card-body">
-                    <div class="stat-number">@Model.PendingModerations</div>
-                    <div class="stat-label">
-                        <i class="fas fa-exclamation-circle"></i> Pending Approvals
-                    </div>
+                    <h6 class="card-title">Total Reviews</h6>
+                    <h2 class="mb-0">@ViewBag.TotalReviews</h2>
+                </div>
+                <div class="card-footer">
+                    <small>Ratings & Feedback</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Secondary Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="stat-card card">
-                <div class="card-body">
-                    <div class="stat-number">@Model.EventsThisMonth</div>
-                    <div class="stat-label">
-                        <i class="fas fa-calendar-check"></i> Events This Month
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card card">
-                <div class="card-body">
-                    <div class="stat-number">@Model.TotalFeedback</div>
-                    <div class="stat-label">
-                        <i class="fas fa-comments"></i> Feedback Received
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <h5><i class="fas fa-tasks"></i> Quick Actions</h5>
-                    <div class="btn-group-vertical w-100">
-                        <a href="@Url.Action("EventAnalytics")" class="btn btn-outline-primary">View Event Analytics</a>
-                        <a href="@Url.Action("Users")" class="btn btn-outline-primary">Manage Users</a>
-                        @if (Model.PendingModerations > 0)
-                        {
-                            <a href="@Url.Action("Moderation")" class="btn btn-warning">Review Pending Feedback (@Model.PendingModerations)</a>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Recent Events & Top Events -->
     <div class="row">
+        <!-- Recent Events -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-clock"></i> Recent Events</h5>
+                    <h5 class="mb-0">Recent Events</h5>
                 </div>
-                <div class="card-body">
-                    <div class="event-list">
-                        @if (Model.RecentEvents != null && Model.RecentEvents.Count > 0)
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach (var @event in ViewBag.RecentEvents)
                         {
-                            @foreach (var item in Model.RecentEvents)
-                                 {
-                                     <div class="event-item">
-                                         <h6>@item.Title</h6>
-                                         <small class="text-muted">
-                                             <span class="badge badge-secondary">@item.Category</span>
-                                             @item.StartDate.ToString("dd MMM yyyy")
-                                         </small>
-                                         <p class="mb-0">Organizer: @item.CreatedBy?.Username</p>
-                                     </div>
-                                 }
-                        }
-                        else
-                        {
-                            <p class="text-muted">No recent events</p>
+                            <a href="@Url.Action("Details", "Event", new { id = @event.Id })" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">@event.Title</h6>
+                                    <small>@event.CreatedAt.ToString("MMM dd")</small>
+                                </div>
+                                <p class="mb-1 text-muted">@event.CreatedBy?.FirstName @event.CreatedBy?.LastName</p>
+                            </a>
                         }
                     </div>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Events")" class="text-decoration-none">View All Events →</a>
                 </div>
             </div>
         </div>
 
+        <!-- Recent Users -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-header">
-                    <h5><i class="fas fa-star"></i> Top Events by Attendance</h5>
+                    <h5 class="mb-0">Recent Users</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach (var user in ViewBag.RecentUsers)
+                        {
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">@user.FirstName @user.LastName</h6>
+                                    <small>@user.CreatedAt.ToString("MMM dd")</small>
+                                </div>
+                                <p class="mb-1 text-muted">@user.Email</p>
+                                @if (user.IsAdmin)
+                                {
+                                    <span class="badge bg-danger">Admin</span>
+                                }
+                                @if (!user.IsActive)
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="@Url.Action("Users")" class="text-decoration-none">View All Users →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Actions</h5>
                 </div>
                 <div class="card-body">
-                    <div class="event-list">
-                        @if (Model.TopEvents != null && Model.TopEvents.Count > 0)
-                        {
-                            @foreach (var item in Model.TopEvents)
-                                 {
-                                     var attendees = item.Rsvps?.Count(r => r.Status == "Attending") ?? 0;
-                                     <div class="event-item">
-                                         <h6>@item.Title</h6>
-                                         <small class="text-muted">
-                                             <span class="badge badge-success">@item.Category</span>
-                                             @item.StartDate.ToString("dd MMM yyyy")
-                                         </small>
-                                         <div class="progress" style="height: 20px;">
-                                             <div class="progress-bar bg-success" role="progressbar" style="width: @((attendees * 100) / item.MaxAttendees)%">
-                                                 @attendees/@item.MaxAttendees
-                                             </div>
-                                         </div>
-                                     </div>
-                                 }
-                        }
-                        else
-                        {
-                            <p class="text-muted">No events yet</p>
-                        }
+                    <div class="btn-group" role="group">
+                        <a href="@Url.Action("Users")" class="btn btn-outline-primary">Manage Users</a>
+                        <a href="@Url.Action("Events")" class="btn btn-outline-success">Manage Events</a>
+                        <a href="@Url.Action("ArchivedEvents")" class="btn btn-outline-secondary">Archived Events</a>
+                        <a href="@Url.Action("Analytics")" class="btn btn-outline-info">Analytics</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-    .admin-container {
-        padding: 20px;
-    }
-
-    .stat-card {
-        border-left: 4px solid #007bff;
-        transition: all 0.3s;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .stat-card.card-warning {
-        border-left-color: #ffc107;
-    }
-
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: #007bff;
-    }
-
-    .stat-label {
-        color: #666;
-        font-size: 0.9rem;
-        margin-top: 10px;
-    }
-
-    .event-list {
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    .event-item {
-        padding: 12px;
-        border-bottom: 1px solid #eee;
-        margin-bottom: 12px;
-    }
-
-    .event-item:last-child {
-        border-bottom: none;
-    }
-
-    .event-item h6 {
-        margin-bottom: 5px;
-    }
-
-    .btn-group-vertical {
-        gap: 10px;
-    }
-
-    .btn-group-vertical .btn {
-        width: 100%;
-    }
-</style>

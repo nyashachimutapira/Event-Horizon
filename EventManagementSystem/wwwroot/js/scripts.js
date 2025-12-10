@@ -224,5 +224,77 @@ style.textContent = `
             transform: translateX(0);
         }
     }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @keyframes shimmer {
+        0% {
+            background-position: -1000px 0;
+        }
+        100% {
+            background-position: 1000px 0;
+        }
+    }
+
+    .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .bounce-in {
+        animation: bounce 0.6s ease-out;
+    }
+
+    .card-animate {
+        animation: fadeInUp 0.5s ease-out;
+    }
 `;
 document.head.appendChild(style);
+
+// ============= INTERSECTION OBSERVER FOR SCROLL ANIMATIONS =============
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('fade-in-up');
+            observer.unobserve(entry.target);
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Observe all feature cards, event cards, and testimonials
+    document.querySelectorAll('.feature-card, .event-card-mini, .testimonial-card').forEach(el => {
+        observer.observe(el);
+    });
+});

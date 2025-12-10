@@ -4,130 +4,142 @@
     ViewData["Title"] = "Create Event";
 }
 
-<div class="create-event-page">
-    <div class="page-header">
-        <h1><i class="fas fa-plus-circle"></i> Create New Event</h1>
-        <p>Share your event with the community</p>
-    </div>
-
-    <div class="form-container">
-        <form asp-action="Create" method="post" class="event-form">
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger alert-dismissible">
-                <button type="button" class="btn-close" data-dismiss="alert"></button>
-                <i class="fas fa-exclamation-circle"></i> Please fix the errors below
-            </div>
-
-            <!-- Basic Information -->
-            <div class="form-section">
-                <h2><i class="fas fa-info-circle"></i> Basic Information</h2>
-                
-                <div class="form-group">
-                    <label asp-for="Title">
-                        <span class="required">*</span> Event Title
-                    </label>
-                    <input asp-for="Title" class="form-control" placeholder="Enter event title" />
-                    <span asp-validation-for="Title" class="text-danger"></span>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create New Event</h4>
                 </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
 
-                <div class="form-group">
-                    <label asp-for="Description">
-                        <span class="required">*</span> Description
-                    </label>
-                    <textarea asp-for="Description" class="form-control" placeholder="Describe your event" rows="5"></textarea>
-                    <span asp-validation-for="Description" class="text-danger"></span>
-                    <small class="form-text">Provide a detailed description of your event</small>
-                </div>
+                        <!-- Title -->
+                        <div class="mb-3">
+                            <label for="Title" class="form-label">Event Title *</label>
+                            <input type="text" class="form-control @(ModelState.IsValid ? "" : Html.ValidationMessageFor(m => m.Title) != null ? "is-invalid" : "")" 
+                                   id="Title" name="Title" value="@Model.Title" required>
+                            @Html.ValidationMessageFor(m => m.Title, "", new { @class = "invalid-feedback d-block" })
+                        </div>
 
-                <div class="form-group">
-                    <label asp-for="Category">
-                        <span class="required">*</span> Category
-                    </label>
-                    <select asp-for="Category" class="form-control">
-                        <option value="">Select a category</option>
-                        <option value="Conference">Conference</option>
-                        <option value="Workshop">Workshop</option>
-                        <option value="Networking">Networking</option>
-                        <option value="Social">Social</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Music">Music</option>
-                        <option value="Food">Food & Dining</option>
-                        <option value="Other">Other</option>
-                    </select>
-                    <span asp-validation-for="Category" class="text-danger"></span>
-                </div>
-            </div>
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="Description" class="form-label">Description *</label>
+                            <textarea class="form-control @(ModelState.IsValid ? "" : Html.ValidationMessageFor(m => m.Description) != null ? "is-invalid" : "")" 
+                                      id="Description" name="Description" rows="4" required>@Model.Description</textarea>
+                            <small class="text-muted">10-2000 characters</small>
+                            @Html.ValidationMessageFor(m => m.Description, "", new { @class = "invalid-feedback d-block" })
+                        </div>
 
-            <!-- Date & Time -->
-            <div class="form-section">
-                <h2><i class="fas fa-clock"></i> Date & Time</h2>
-                
-                <div class="form-row">
-                    <div class="form-group col-md-6">
-                        <label asp-for="StartDate">
-                            <span class="required">*</span> Start Date & Time
-                        </label>
-                        <input asp-for="StartDate" type="datetime-local" class="form-control" />
-                        <span asp-validation-for="StartDate" class="text-danger"></span>
-                    </div>
+                        <!-- Category -->
+                        <div class="mb-3">
+                            <label for="Category" class="form-label">Category *</label>
+                            <select class="form-select" id="Category" name="Category" required>
+                                <option value="">-- Select Category --</option>
+                                <option value="Conference" @(Model.Category == "Conference" ? "selected" : "")>Conference</option>
+                                <option value="Workshop" @(Model.Category == "Workshop" ? "selected" : "")>Workshop</option>
+                                <option value="Meetup" @(Model.Category == "Meetup" ? "selected" : "")>Meetup</option>
+                                <option value="Party" @(Model.Category == "Party" ? "selected" : "")>Party</option>
+                                <option value="Networking" @(Model.Category == "Networking" ? "selected" : "")>Networking</option>
+                                <option value="Training" @(Model.Category == "Training" ? "selected" : "")>Training</option>
+                                <option value="Other" @(Model.Category == "Other" ? "selected" : "")>Other</option>
+                            </select>
+                            @Html.ValidationMessageFor(m => m.Category, "", new { @class = "invalid-feedback d-block" })
+                        </div>
 
-                    <div class="form-group col-md-6">
-                        <label asp-for="EndDate">
-                            <span class="required">*</span> End Date & Time
-                        </label>
-                        <input asp-for="EndDate" type="datetime-local" class="form-control" />
-                        <span asp-validation-for="EndDate" class="text-danger"></span>
-                    </div>
-                </div>
-            </div>
+                        <div class="row">
+                            <!-- Start Date -->
+                            <div class="col-md-6 mb-3">
+                                <label for="StartDate" class="form-label">Start Date & Time *</label>
+                                <input type="datetime-local" class="form-control" 
+                                       id="StartDate" name="StartDate" 
+                                       value="@Model.StartDate.ToString("yyyy-MM-ddTHH:mm")" required>
+                                @Html.ValidationMessageFor(m => m.StartDate, "", new { @class = "invalid-feedback d-block" })
+                            </div>
 
-            <!-- Location -->
-            <div class="form-section">
-                <h2><i class="fas fa-map-marker-alt"></i> Location</h2>
-                
-                <div class="form-group">
-                    <label asp-for="Location">
-                        <span class="required">*</span> Event Location
-                    </label>
-                    <input asp-for="Location" class="form-control" placeholder="e.g., 123 Main St, City, State" />
-                    <span asp-validation-for="Location" class="text-danger"></span>
-                </div>
-            </div>
+                            <!-- End Date -->
+                            <div class="col-md-6 mb-3">
+                                <label for="EndDate" class="form-label">End Date & Time *</label>
+                                <input type="datetime-local" class="form-control" 
+                                       id="EndDate" name="EndDate" 
+                                       value="@Model.EndDate.ToString("yyyy-MM-ddTHH:mm")" required>
+                                @Html.ValidationMessageFor(m => m.EndDate, "", new { @class = "invalid-feedback d-block" })
+                            </div>
+                        </div>
 
-            <!-- Attendance -->
-            <div class="form-section">
-                <h2><i class="fas fa-users"></i> Attendance</h2>
-                
-                <div class="form-group">
-                    <label asp-for="MaxAttendees">
-                        <span class="required">*</span> Maximum Attendees
-                    </label>
-                    <input asp-for="MaxAttendees" type="number" class="form-control" placeholder="e.g., 100" min="1" />
-                    <span asp-validation-for="MaxAttendees" class="text-danger"></span>
-                    <small class="form-text">Leave unlimited or set a specific number</small>
-                </div>
-            </div>
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label for="Location" class="form-label">Location *</label>
+                            <input type="text" class="form-control" 
+                                   id="Location" name="Location" 
+                                   placeholder="City, Venue, or Virtual" 
+                                   value="@Model.Location" required>
+                            @Html.ValidationMessageFor(m => m.Location, "", new { @class = "invalid-feedback d-block" })
+                        </div>
 
-            <!-- Media -->
-            <div class="form-section">
-                <h2><i class="fas fa-image"></i> Event Image</h2>
-                
-                <div class="form-group">
-                    <label asp-for="ImageUrl">Event Image URL</label>
-                    <input asp-for="ImageUrl" class="form-control" placeholder="https://example.com/image.jpg" />
-                    <span asp-validation-for="ImageUrl" class="text-danger"></span>
-                    <small class="form-text">Provide a URL to an event image (optional)</small>
+                        <!-- Max Attendees -->
+                        <div class="mb-3">
+                            <label for="MaxAttendees" class="form-label">Maximum Attendees *</label>
+                            <input type="number" class="form-control" 
+                                   id="MaxAttendees" name="MaxAttendees" 
+                                   value="@Model.MaxAttendees" min="1" max="100000" required>
+                            @Html.ValidationMessageFor(m => m.MaxAttendees, "", new { @class = "invalid-feedback d-block" })
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-3">
+                            <label for="imageFile" class="form-label">Event Image</label>
+                            <input type="file" class="form-control" 
+                                   id="imageFile" name="imageFile" 
+                                   accept=".jpg,.jpeg,.png,.gif">
+                            <small class="text-muted">JPG, PNG, GIF (Max 5MB). Leave empty for no image.</small>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                        {
+                            <div class="mb-3">
+                                <img src="@Model.ImageUrl" alt="Event Image" class="img-thumbnail" style="max-width: 200px;">
+                                <p class="text-muted small">Current image</p>
+                            </div>
+                        }
+
+                        <!-- Submit Buttons -->
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-end mb-3">
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Event</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 
-            <!-- Form Actions -->
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-check-circle"></i> Create Event
-                </button>
-                <a href="@Url.Action("Index")" class="btn btn-outline btn-lg">
-                    <i class="fas fa-times-circle"></i> Cancel
-                </a>
+            <!-- Help Text -->
+            <div class="alert alert-info mt-4">
+                <h6>Tips for Creating a Great Event:</h6>
+                <ul class="mb-0">
+                    <li>Use a clear, descriptive title</li>
+                    <li>Provide detailed information in the description</li>
+                    <li>Set accurate dates and times</li>
+                    <li>Upload a professional event image</li>
+                    <li>Be realistic about maximum attendees</li>
+                </ul>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Validate end date is after start date
+        document.getElementById('EndDate').addEventListener('change', function() {
+            const startDate = new Date(document.getElementById('StartDate').value);
+            const endDate = new Date(this.value);
+            
+            if (endDate <= startDate) {
+                this.setCustomValidity('End date must be after start date');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+}

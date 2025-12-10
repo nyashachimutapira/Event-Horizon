@@ -1,0 +1,183 @@
+@model List<EventManagementSystem.Models.Notification>
+
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Notifications</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            @if (ViewBag.TotalCount > 0)
+            {
+                <form method="post" action="@Url.Action("MarkAllAsRead")" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Mark All as Read</button>
+                </form>
+            }
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <!-- Notifications List -->
+        <div class="list-group">
+            @foreach (var notification in Model)
+            {
+                <div class="list-group-item @(notification.IsRead ? "" : "list-group-item-light")">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1">
+                                @if (!notification.IsRead)
+                                {
+                                    <span class="badge bg-primary me-2">New</span>
+                                }
+                                @notification.Title
+                            </h6>
+                            <p class="mb-2">@notification.Message</p>
+                            <small class="text-muted">
+                                @{
+                                    var timeAgo = (DateTime.UtcNow - notification.CreatedAt).TotalSeconds;
+                                    if (timeAgo < 60)
+                                    {
+                                        <span>Just now</span>
+                                    }
+                                    else if (timeAgo < 3600)
+                                    {
+                                        <span>@((int)(timeAgo / 60)) minutes ago</span>
+                                    }
+                                    else if (timeAgo < 86400)
+                                    {
+                                        <span>@((int)(timeAgo / 3600)) hours ago</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@notification.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                    }
+                                }
+                            </small>
+
+                            <!-- Notification Type Badge -->
+                            @{
+                                string badgeClass = notification.Type switch
+                                {
+                                    "RSVP_CONFIRMATION" => "bg-success",
+                                    "EVENT_REMINDER" => "bg-info",
+                                    "EVENT_CANCELLED" => "bg-danger",
+                                    "SPOT_AVAILABLE" => "bg-warning text-dark",
+                                    _ => "bg-secondary"
+                                };
+                            }
+                            <br>
+                            <span class="badge @badgeClass mt-2">@notification.Type?.Replace("_", " ")</span>
+                        </div>
+                        <div class="flex-shrink-0 ms-3">
+                            @if (!notification.IsRead)
+                            {
+                                <form method="post" action="@Url.Action("MarkAsRead", new { id = notification.Id })" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as read">
+                                        ✓
+                                    </button>
+                                </form>
+                            }
+                            <form method="post" action="@Url.Action("Delete", new { id = notification.Id })" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                    ✕
+                                </button>
+                            </form>
+                            @if (notification.EventId.HasValue)
+                            {
+                                <a href="@Url.Action("Details", "Event", new { id = notification.EventId })" class="btn btn-sm btn-outline-secondary">
+                                    View Event
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @{
+                        var currentPage = ViewBag.Page;
+                        var totalPages = ViewBag.TotalPages;
+                        var prevDisabled = currentPage == 1 ? "disabled" : "";
+
+                        <li class="page-item @prevDisabled">
+                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1 })">Previous</a>
+                        </li>
+
+                        for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                        {
+                            var isActive = i == currentPage ? "active" : "";
+                            <li class="page-item @isActive">
+                                <a class="page-link" href="@Url.Action("Index", new { page = i })">@i</a>
+                            </li>
+                        }
+
+                        var nextDisabled = currentPage == totalPages ? "disabled" : "";
+                        <li class="page-item @nextDisabled">
+                            <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1 })">Next</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <p>You have no notifications yet.</p>
+        </div>
+    }
+
+    <!-- Notifications Summary -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5>Notification Summary</h5>
+        </div>
+        <div class="card-body">
+            <p><strong>Total Notifications:</strong> @ViewBag.TotalCount</p>
+            <p><strong>Unread:</strong> <span id="unreadCount">0</span></p>
+            <p class="text-muted mb-0">Notifications are stored for 90 days.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Update unread count
+    function updateUnreadCount() {
+        fetch('@Url.Action("GetUnreadCount")')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('unreadCount').textContent = data.unreadCount;
+            });
+    }
+
+    updateUnreadCount();
+    setInterval(updateUnreadCount, 30000); // Update every 30 seconds
+</script>
+
+<style>
+    .list-group-item {
+        border-left: 4px solid #ddd;
+        transition: all 0.2s;
+    }
+
+    .list-group-item-light {
+        border-left-color: #007bff;
+        background-color: #f8f9ff;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>

@@ -36,8 +36,17 @@ namespace EventManagementSystem.Controllers
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
             if (user != null && VerifyPassword(password, user.PasswordHash))
             {
-                // Set session or cookie here
+                // Check if user account is active
+                if (!user.IsActive)
+                {
+                    ModelState.AddModelError("", "Your account has been deactivated.");
+                    return View();
+                }
+
+                // Set session
                 HttpContext.Session.SetInt32("UserId", user.Id);
+                HttpContext.Session.SetString("Username", user.Username ?? "");
+                HttpContext.Session.SetString("IsAdmin", user.IsAdmin ? "true" : "false");
                 return RedirectToAction("Index", "Event");
             }
 
@@ -54,11 +63,42 @@ namespace EventManagementSystem.Controllers
         // POST: Account/Register
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(string username, string email, string password, string firstName, string lastName)
+        public async Task<IActionResult> Register(string username, string email, string password, string confirmPassword, string firstName, string lastName)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || 
+                string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(firstName) || 
+                string.IsNullOrWhiteSpace(lastName))
             {
-                ModelState.AddModelError("", "Email and password are required.");
+                ModelState.AddModelError("", "All fields are required.");
+                return View();
+            }
+
+            // Validate password
+            if (password.Length < 8)
+            {
+                ModelState.AddModelError("", "Password must be at least 8 characters long.");
+                return View();
+            }
+
+            if (password != confirmPassword)
+            {
+                ModelState.AddModelError("", "Passwords do not match.");
+                return View();
+            }
+
+            // Validate email format
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                if (addr.Address != email)
+                {
+                    ModelState.AddModelError("", "Invalid email format.");
+                    return View();
+                }
+            }
+            catch
+            {
+                ModelState.AddModelError("", "Invalid email format.");
                 return View();
             }
 
@@ -69,19 +109,28 @@ namespace EventManagementSystem.Controllers
                 return View();
             }
 
+            var existingUsername = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (existingUsername != null)
+            {
+                ModelState.AddModelError("", "Username already exists.");
+                return View();
+            }
+
             var user = new User
             {
                 Username = username,
                 Email = email,
                 FirstName = firstName,
                 LastName = lastName,
-                PasswordHash = HashPassword(password)
+                PasswordHash = HashPassword(password),
+                IsAdmin = false // New users are organizers by default, not admins
             };
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
             HttpContext.Session.SetInt32("UserId", user.Id);
+            HttpContext.Session.SetString("Username", user.Username ?? "");
             return RedirectToAction("Index", "Event");
         }
 
